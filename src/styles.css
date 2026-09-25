@@ -74,7 +74,7 @@ button:focus-visible, a:focus-visible, .v-field:focus-within { outline: 3px soli
 .chart-legend span { display: inline-flex; align-items: center; gap: 6px; }
 .legend-swatch { width: 9px; height: 9px; border-radius: 2px; background: #a9c5dc; }
 .legend-swatch--rate { width: 14px; height: 2px; border-radius: 0; background: #328263; }
-.trend-chart__svg { display: block; width: 100%; height: 226px; overflow: visible; }
+.trend-chart__svg { display: block; width: 100%; height: auto; aspect-ratio: 720 / 254; overflow: visible; }
 .chart-gridline { stroke: #e6ebef; stroke-dasharray: 3 4; stroke-width: 1; }
 .chart-axis-label { fill: #83909d; font-family: 'DM Sans', sans-serif; font-size: 9px; }
 .chart-axis-title { fill: #8794a1; font-family: 'DM Sans', sans-serif; font-size: 8px; font-weight: 700; letter-spacing: .08em; }
@@ -157,7 +157,8 @@ button:focus-visible, a:focus-visible, .v-field:focus-within { outline: 3px soli
   .insight-grid { grid-template-columns: 1fr; gap: 19px; }
   .trend-section { padding: 0 0 19px; border-right: 0; border-bottom: 1px solid var(--line); }
   .trend-chart { min-height: 225px; }
-  .trend-chart__svg { height: 204px; }
+  .chart-axis-label { font-size: 17px; }
+  .chart-axis-title { font-size: 14px; }
   .region-section { padding-bottom: 2px; }
   .region-list { grid-template-columns: 1fr 1fr; gap: 15px 18px; }
   .exceptions-heading { align-items: flex-start; }

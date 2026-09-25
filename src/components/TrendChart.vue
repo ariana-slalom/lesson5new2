@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useDisplay } from 'vuetify'
 
 interface TrendPoint {
   date: string
@@ -8,12 +9,15 @@ interface TrendPoint {
 }
 
 const props = defineProps<{ points: TrendPoint[] }>()
-const plot = { left: 54, right: 672, top: 26, bottom: 202 }
+const { width: viewportWidth } = useDisplay()
+const plot = { left: 54, right: 668, top: 26, bottom: 202 }
 const height = plot.bottom - plot.top
 const width = plot.right - plot.left
 
 const maxShipments = computed(() => Math.max(1, ...props.points.map((point) => point.shipments)))
 const rateMinimum = computed(() => Math.max(80, Math.floor(Math.min(100, ...props.points.map((point) => point.onTimeRate)) / 5) * 5 - 5))
+const barWidth = computed(() => Math.min(30, width / Math.max(props.points.length, 1) * 0.54))
+const rightAxisX = computed(() => viewportWidth.value <= 650 ? 723 : 710)
 const positions = computed(() => props.points.map((point, index) => {
   const x = props.points.length < 2
     ? plot.left + width / 2
@@ -57,17 +61,17 @@ const chartSummary = computed(() => {
       <span><i class="legend-swatch legend-swatch--rate"></i> On-time delivery</span>
     </div>
     <p class="sr-only" role="img" :aria-label="chartSummary"></p>
-    <svg class="trend-chart__svg" viewBox="0 0 720 254" preserveAspectRatio="none" aria-hidden="true">
+    <svg class="trend-chart__svg" viewBox="0 0 720 254" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
       <g v-for="tick in gridTicks" :key="tick.y">
         <line :x1="plot.left" :x2="plot.right" :y1="tick.y" :y2="tick.y" class="chart-gridline" />
         <text :x="plot.left - 10" :y="tick.y + 4" text-anchor="end" class="chart-axis-label">{{ tick.shipments }}</text>
-        <text x="710" :y="tick.y + 4" text-anchor="end" class="chart-axis-label">{{ tick.rate }}%</text>
+        <text :x="rightAxisX" :y="tick.y + 4" text-anchor="end" class="chart-axis-label chart-axis-label--right">{{ tick.rate }}%</text>
       </g>
       <g v-for="point in positions" :key="point.date">
         <rect
-          :x="point.x - Math.min(15, width / Math.max(positions.length, 1) * 0.27)"
+          :x="Math.max(plot.left, Math.min(plot.right - barWidth, point.x - barWidth / 2))"
           :y="point.shipmentY"
-          :width="Math.min(30, width / Math.max(positions.length, 1) * 0.54)"
+          :width="barWidth"
           :height="plot.bottom - point.shipmentY"
           rx="3"
           class="chart-bar"

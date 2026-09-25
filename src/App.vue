@@ -336,6 +336,7 @@ onMounted(loadDashboard)
         <footer class="page-footer">
           <span>FastForward Logistics</span>
           <span>Fictional training data · Not for operational use</span>
+          <span>Lesson Ouput by Ariana de Ryss, Protogen</span>
         </footer>
       </div>
     </v-main>
