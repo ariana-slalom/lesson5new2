@@ -1,28 +1,27 @@
-# My Link - Project Brief
-A personal link-in-bio page, One page, clean design, mobile first
-I want to send people here from my social profiles
+# FastForward Logistics - Operations Executive Dashboard
 
-## Tech
-- Pure HML, CSS and JavaScript - no frameworkds, no build tool, or frameworks
-Single index.html file (CSS and JS can be separate files)
-Deploys to Vercel as a static site
+An educational operations dashboard for FastForward Logistics. It presents fictional shipment, delivery, regional performance, and exception data in a responsive executive view.
 
-## Design
-- Centered card, layout, max-width 480px
-- My name is a heading, short bio underneath
-- Profile photo placeholder (circle, 120px)
-- Dark mode by default with a light/dark toggle
-- Smooth hover naimation on the link buttons
-- Google Font: Inter
-- Use natural organic color palates, earth tones, with pops of color like floral blooms
+## Technology
 
-##Links
-Display these as stackedbuttons, full-width within the card:
-- Portfolio (deryssdesign.com)
-- LinkedIn (https://www.linkedin.com/in/ariana-de-ryss/)
-- Email (mailto:ariana.de.ryss@gmail.com)
+- Vue 3 with Vite and TypeScript
+- Vuetify 3 with Material Design Icons
+- Pinia is not required; filtering uses local Vue state
+- Recharts-style SVG charting is implemented with a focused local chart component
+- Deploys to Vercel as a Vite static application
 
-## Nice to have
-- Subtle gradient or animated background
-- Link buttons have icons (simple SVG or emoji)
-- Footer with "Made with tea and Copilot"
+## Product Requirements
+
+- Deep navy application header with FastForward Logistics branding, dashboard title, subtitle, and fictional freshness date
+- Functional date-range and region filters with reset behavior
+- Dynamically generated executive summary
+- Reusable typed `MetricCard.vue` components for four required KPIs
+- Responsive shipment-volume and on-time-delivery trend visualization
+- Comparative regional performance section
+- Sortable, filter-aware open exceptions table with severity, ownership, age, and next actions
+- Intentional loading, empty, and user-friendly error states
+- Keyboard-accessible controls, visible focus states, semantic headings, chart summaries, and reduced-motion support
+
+## Data and Safety
+
+All operational records are fictional and stored locally in `src/data/metrics.json`. No client, company-sensitive, or production data is included. This application is for educational purposes only and is not approved for client delivery or internal production use.
