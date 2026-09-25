@@ -17,7 +17,8 @@ npm run build
 
 ## Dashboard
 
-- Date-range and region filters update the KPI cards, trend chart, regional comparison, and open-exceptions table.
+- Month, date range (7 days, 14 days, 1 month, quarter, or year), and region filters update the KPI cards, trend chart, regional comparison, and open-exceptions table.
+- The dashboard defaults to dark mode; the header control toggles light mode.
 - KPI cards share a typed `MetricCard.vue` component.
 - The shipment and on-time trend is rendered by a small accessible SVG component.
 - Exception columns can be sorted, and severity can be filtered independently.

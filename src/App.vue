@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useTheme } from 'vuetify'
 import MetricCard from './components/MetricCard.vue'
 import TrendChart from './components/TrendChart.vue'
 import metrics from './data/metrics.json'
 
 type Severity = 'Critical' | 'High' | 'Medium' | 'Low'
-type RangeKey = '7' | '14'
+type RangeKey = '7' | '14' | 'month' | 'quarter' | 'year'
 type SortKey = 'id' | 'region' | 'severity' | 'owner' | 'age'
 type SortDirection = 'ascending' | 'descending'
 
@@ -42,10 +43,13 @@ interface SortColumn {
 }
 
 const dataset = metrics as DashboardDataset
+const theme = useTheme()
 const dashboardData = ref<DashboardDataset | null>(null)
 const isLoading = ref(true)
 const loadError = ref('')
+const selectedMonth = ref(dataset.asOf.slice(0, 7))
 const selectedRange = ref<RangeKey>('7')
+const isDarkMode = ref(true)
 const selectedRegion = ref('All regions')
 const selectedSeverity = ref('All levels')
 const sortKey = ref<SortKey>('age')
@@ -60,21 +64,50 @@ const columns: SortColumn[] = [
 const rangeOptions = [
   { title: 'Last 7 days', value: '7' },
   { title: 'Last 14 days', value: '14' },
+  { title: '1 month', value: 'month' },
+  { title: 'Quarter', value: 'quarter' },
+  { title: 'Year', value: 'year' },
 ]
+const monthOptions = computed(() => [...new Set((dashboardData.value?.daily ?? []).map((record) => record.date.slice(0, 7)))]
+  .sort((first, second) => second.localeCompare(first))
+  .map((month) => ({
+    title: new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+      .format(new Date(`${month}-01T00:00:00Z`)),
+    value: month,
+  })))
+const selectedRangeLabel = computed(() => rangeOptions.find((option) => option.value === selectedRange.value)?.title ?? 'Last 7 days')
 const severityOptions = ['All levels', 'Critical', 'High', 'Medium', 'Low']
 const regionOptions = computed(() => [
   'All regions',
   ...new Set((dashboardData.value?.daily ?? []).map((record) => record.region)),
 ])
 const asOfDate = computed(() => dashboardData.value?.asOf ?? dataset.asOf)
-const selectedStartDate = computed(() => {
-  const cutoff = new Date(`${asOfDate.value}T00:00:00Z`)
-  cutoff.setUTCDate(cutoff.getUTCDate() - Number(selectedRange.value) + 1)
-  return cutoff.toISOString().slice(0, 10)
+const selectedPeriod = computed(() => {
+  const [year, month] = selectedMonth.value.split('-').map(Number)
+  const monthStart = new Date(Date.UTC(year, month - 1, 1))
+  const monthEnd = new Date(Date.UTC(year, month, 0))
+  const asOf = new Date(`${asOfDate.value}T00:00:00Z`)
+  if (monthEnd > asOf) monthEnd.setTime(asOf.getTime())
+
+  let periodStart = monthStart
+  if (selectedRange.value === '7' || selectedRange.value === '14') {
+    periodStart = new Date(monthEnd)
+    periodStart.setUTCDate(periodStart.getUTCDate() - Number(selectedRange.value) + 1)
+    if (periodStart < monthStart) periodStart = monthStart
+  } else if (selectedRange.value === 'quarter') {
+    periodStart = new Date(Date.UTC(year, Math.floor((month - 1) / 3) * 3, 1))
+  } else if (selectedRange.value === 'year') {
+    periodStart = new Date(Date.UTC(year, 0, 1))
+  }
+
+  return {
+    start: periodStart.toISOString().slice(0, 10),
+    end: monthEnd.toISOString().slice(0, 10),
+  }
 })
 const filteredDaily = computed(() => (dashboardData.value?.daily ?? []).filter((record) => (
-  record.date >= selectedStartDate.value
-  && record.date <= asOfDate.value
+  record.date >= selectedPeriod.value.start
+  && record.date <= selectedPeriod.value.end
   && (selectedRegion.value === 'All regions' || record.region === selectedRegion.value)
 )))
 const totals = computed(() => filteredDaily.value.reduce((sum, record) => ({
@@ -84,8 +117,8 @@ const totals = computed(() => filteredDaily.value.reduce((sum, record) => ({
 }), { shipments: 0, delivered: 0, onTime: 0 }))
 const onTimeRate = computed(() => totals.value.delivered ? totals.value.onTime / totals.value.delivered * 100 : 0)
 const filteredExceptions = computed(() => (dashboardData.value?.exceptions ?? []).filter((record) => (
-  record.date >= selectedStartDate.value
-  && record.date <= asOfDate.value
+  record.date >= selectedPeriod.value.start
+  && record.date <= selectedPeriod.value.end
   && (selectedRegion.value === 'All regions' || record.region === selectedRegion.value)
   && (selectedSeverity.value === 'All levels' || record.severity === selectedSeverity.value)
 )))
@@ -147,7 +180,7 @@ const metricCards = computed(() => [
   {
     label: 'Shipments',
     value: totals.value.shipments.toLocaleString(),
-    detail: `${selectedRange.value} day view · ${selectedRegion.value.toLowerCase()}`,
+    detail: `${selectedRangeLabel.value} · ${selectedRegion.value.toLowerCase()}`,
     icon: 'mdi-package-variant-closed',
     tone: 'blue' as const,
   },
@@ -175,9 +208,15 @@ const metricCards = computed(() => [
 ])
 
 function resetFilters() {
+  selectedMonth.value = asOfDate.value.slice(0, 7)
   selectedRange.value = '7'
   selectedRegion.value = 'All regions'
   selectedSeverity.value = 'All levels'
+}
+function toggleTheme() {
+  isDarkMode.value = !isDarkMode.value
+  theme.change(isDarkMode.value ? 'operationsDark' : 'operations')
+  document.documentElement.dataset.theme = isDarkMode.value ? 'dark' : 'light'
 }
 function toggleSort(key: SortKey) {
   if (sortKey.value === key) {
@@ -223,6 +262,16 @@ onMounted(loadDashboard)
         </a>
         <div class="header-status">
           <span class="data-badge"><span class="data-badge__dot"></span> Fictional data</span>
+          <v-btn
+            class="theme-toggle"
+            icon
+            variant="text"
+            :aria-label="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+            :title="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+            @click="toggleTheme"
+          >
+            <v-icon :icon="isDarkMode ? 'mdi-weather-sunny' : 'mdi-weather-night'" aria-hidden="true" />
+          </v-btn>
           <span class="header-status__date">Updated {{ formatDate(asOfDate) }}, 08:30 ET</span>
         </div>
       </div>
@@ -240,8 +289,9 @@ onMounted(loadDashboard)
 
         <section class="filter-bar" aria-label="Dashboard filters">
           <div class="filter-bar__controls">
+            <v-select v-model="selectedMonth" :items="monthOptions" item-title="title" item-value="value" label="Month" variant="outlined" density="compact" hide-details class="filter-select filter-select--month" />
             <v-select v-model="selectedRange" :items="rangeOptions" item-title="title" item-value="value" label="Date range" variant="outlined" density="compact" hide-details class="filter-select filter-select--range" />
-            <v-select v-model="selectedRegion" :items="regionOptions" label="Region" variant="outlined" density="compact" hide-details class="filter-select" />
+            <v-select v-model="selectedRegion" :items="regionOptions" label="Region" variant="outlined" density="compact" hide-details class="filter-select filter-select--region" />
           </div>
           <v-btn class="reset-button" variant="text" prepend-icon="mdi-filter-remove-outline" @click="resetFilters">Reset filters</v-btn>
         </section>

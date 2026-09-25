@@ -15,7 +15,7 @@ const vuetify = createVuetify({
     sets: { mdi },
   },
   theme: {
-    defaultTheme: 'operations',
+    defaultTheme: 'operationsDark',
     themes: {
       operations: {
         dark: false,
@@ -23,6 +23,16 @@ const vuetify = createVuetify({
           primary: '#14283e',
           secondary: '#527568',
           surface: '#ffffff',
+          background: '#f3f5f7',
+        },
+      },
+      operationsDark: {
+        dark: true,
+        colors: {
+          primary: '#172b3e',
+          secondary: '#65ba94',
+          surface: '#1b2a39',
+          background: '#111d28',
         },
       },
     },

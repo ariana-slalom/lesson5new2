@@ -13,7 +13,9 @@ An educational operations dashboard for FastForward Logistics. It presents ficti
 ## Product Requirements
 
 - Deep navy application header with FastForward Logistics branding, dashboard title, subtitle, and fictional freshness date
-- Functional date-range and region filters with reset behavior
+- Month-first filter order: month, date range, then region
+- Date-range options for 7 days, 14 days, 1 month, quarter, and year, with reset behavior
+- Dark mode by default with a header toggle for light mode
 - Dynamically generated executive summary
 - Reusable typed `MetricCard.vue` components for four required KPIs
 - Responsive shipment-volume and on-time-delivery trend visualization
